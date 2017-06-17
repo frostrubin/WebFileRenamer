@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+    <title>File Renamer</title>
+
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">    
+
+	<link rel="stylesheet" href="spectre.min.css">
+	<link rel="stylesheet" href="spectre-exp.min.css">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <script src="./moment.min.js"></script>
+    <!-- https://momentjs.com/ -->
+    <script src="./exif.js"></script> 
+    <!-- https://github.com/exif-js/exif-js -->
+    <script src="./Sortable.min.js"></script>
+    <!-- https://github.com/RubaXa/Sortable -->
+    <script src="./script.js"></script>
+</head>
+<body onload="FileRenamer.onPageLoad();">
+	<table id="main-container">
+		<tr>
+			<td>
+				<div id="actions-heading">
+					<form>
+						<div class="float-left">
+							<label class="form-switch">
+						    	<input type="checkbox" onchange="FileRenamer.onToggleIgnoreExtensions();" checked id="chk-extensions"/>
+						      	<i class="form-icon"></i>
+						      	Ignore Extensions
+						    </label>
+						</div>
+						<div class="float-right">
+							<div id="add-action-dropdown" class="dropdown float-right">
+				                <a class="btn dropdown-toggle" tabindex="0">Add Action<i class="icon icon-caret"></i></a>
+				                <ul class="menu">
+				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('stringAdd');">Add String</a>
+				                  </li>	       
+				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('addDate');">Add Date</a>
+				                  </li>	
+				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('addSequence');">Add Sequence</a>
+				                  </li>						                  				                             				       
+				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('stringReplace');">Replace String</a>
+				                  </li>		    
+				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('stringRegexReplace');">Replace RegEx</a>
+				                  </li>		
+				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('stringChangeCase');">Change Case</a>
+				                  </li>
+				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('stringDeleteLeading');">Remove Leading Characters</a>
+				                  </li>		
+				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('stringDeleteTrailing');">Remove Trailing Characters</a>
+				                  </li>						                                    			                                
+				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('removeLeadingSpaces');">Remove Leading Spaces</a>
+				                  </li>		
+				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('removeTrailingSpaces');">Remove Trailing Spaces</a>
+				                  </li>
+				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('removeDoubleSpaces');">Remove Double Spaces</a>
+				                  </li>						                 				                  		                  
+				                </ul>
+		              		</div>
+		              	</div>
+              		</form>
+				</div>
+			</td>
+			<td>
+				<div id="preview-heading">
+					<input id='upload-file-input' type='file' onChange="FileRenamer.onFileSelected();"multiple>
+					<form>
+						<div class="float-left">
+							<button id="btn-select-files" class="btn" onclick="FileRenamer.onSelectFiles();">Select Files</button>
+							<button id="btn-clear-files"  class="btn" onclick="FileRenamer.onClearFiles();">Clear Files</button>
+						</div>
+						<!-- <div class="float-center"> -->
+							<label class="form-switch">
+						    	<input type="checkbox" onchange="FileRenamer.onToggleFileSort();" id="chk-sorting"/>
+						      	<i class="form-icon"></i>
+						      	Keep Selection Order
+						    </label>
+						<!-- </div>						 -->
+						<div id="validation-toast" class="text-center toast rel" onclick="FileRenamer.onValidationFilterToggle();">
+						</div>
+						<div class="float-right">
+							<button id="btn-rename" class="btn" onclick="FileRenamer.onRenameFiles();" disabled>Rename Files</button>
+						</div>
+					</form>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<div id="actions-container">
+					<ul id="action-list">
+					</ul>
+				</div>
+			</td>
+			<td>
+				<div id="preview-container">
+					<table class="table table-striped table-hover">
+					  	<thead>
+					    	<tr>
+					      		<th>Old Name</th>
+					      		<th>New Name</th>
+					    	</tr>
+					  	</thead>
+					  	<tbody id="preview-table-body">
+					  	</tbody>
+					</table>
+				</div>
+			</td>		
+		</tr>
+	</table>
+	<div id="renaming-overlay" class="modal">
+	  <div class="modal-overlay"></div>
+	  <div class="modal-container">
+	    <div class="modal-header">
+	      <button class="btn btn-clear float-right" onclick="FileRenamer.onCancelRenaming();"></button>
+	      <div class="modal-title">Renaming ...</div>
+	    </div>
+	    <div class="modal-body">
+	      <div class="content">
+	        <progress id="renaming-progress" class="progress" value="75" max="100"></progress>
+	      </div>
+	    </div>
+	    <div class="modal-footer">
+			<button class="btn btn-primary" onclick="FileRenamer.onCancelRenaming();">Cancel</button>
+	    </div>
+	  </div>
+	</div>	
+</body>
+</html>

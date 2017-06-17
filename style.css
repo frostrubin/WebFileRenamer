@@ -1,0 +1,150 @@
+#main-container {
+  border-bottom: 1px solid #5764c6;
+}
+
+#main-container > tbody > tr:nth-child(1) > td {
+  border-bottom: 1px solid #5764c6;
+}
+
+#main-container > tbody > tr > td:nth-child(1) {
+  border-right: 2px solid #5764c6;
+}
+
+
+/*#main-container > tbody > tr:nth-child(2) > td:nth-child(1) {
+  border-top: 1px solid #5764c6;
+  border-right: 1px solid #5764c6;
+}*/
+
+/*
+#actions-heading,
+#preview-contaner {
+  border-right: 1px solid #5764c6;
+}
+
+#actions-container {
+  border-top: 1px solid #5764c6;
+  border-right: 1px solid #5764c6;
+}*/
+
+mono {
+  font-family: 'Lucida Console', Monaco, monospace;
+}
+
+mono.is-error {
+  color: red;
+}
+
+#validation-toast > i {
+  font-size: 2.1rem;
+}
+
+#renaming-overlay > div.modal-container {
+  width: 40%;
+  margin-top: -15%;
+}
+
+.table-invisible {
+  border: 0px;
+  border-spacing: 0px;
+  width: 100%;
+}
+
+.table-invisible tr,
+.table-invisible td {
+  border: 0px;
+}
+
+.drag-handle {
+  cursor: move;
+  cursor: -webkit-grabbing;
+}
+
+#main-container {
+  border-spacing: 0px;
+  width: 100%;
+  height: 100%;
+}
+
+#main-container > tbody > tr:nth-child(1) {
+  height: 7vh;
+}
+
+#main-container > tbody > tr:nth-child(2) {
+  height: 90vh;
+}
+
+#main-container > tbody > tr:nth-child(1) > td:nth-child(1) {
+  width: 32vw;
+}
+
+#upload-file-input {
+  display: none;
+}
+
+#main-container > tbody > tr:nth-child(2) > td {
+  vertical-align: top;
+}
+
+#actions-heading > form > div.float-left,
+#preview-heading > form > label {
+  margin-top: 4px;
+}
+
+#btn-rename,
+#add-action-dropdown {
+  margin-right: 1rem;
+}
+
+#btn-select-files,
+#preview-heading > form > label {
+  margin-left: 1rem;
+}
+
+#action-list {
+  margin: 0;
+  list-style: none;
+}
+
+#actions-container,
+#preview-container {
+    height: 90vh;
+    max-height: 90vh;
+    overflow-y: scroll;
+}
+
+#actions-container > ul >li {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+#actions-container > ul >li > div > div.card-body {
+  padding-top: 1rem;
+}
+
+#actions-container > ul >li > div > div.card-header > h4 {
+  margin-bottom: 0px;
+}
+
+.menu {
+  min-width: 23rem !important;
+}
+
+.case-switch {
+  margin-left: 1rem;
+  padding-right: 0px;
+  margin-right: 0px;
+}
+
+.auto-width {
+  width: auto !important;
+}
+
+#validation-toast {
+  width: 15rem;
+  margin: 0;
+  margin-left: 1rem;
+  padding: .5rem .8rem;
+  cursor: pointer;
+  display: none;
+}
