@@ -140,15 +140,11 @@ var FileRenamer = {
     	this.onAnyInput();
     },
     keepPreviewCurrent: function() {
+        // Disable the Main Buttons, to prevent in-between renaming
+        this.disableButton('btn-rename');
+        this.disableButton('btn-clear-files');        
+
     	var container = document.getElementById('preview-table-body');
-    	
-    	if (this._files.length > 0) {
-    		this.enableButton('btn-rename');
-    		this.enableButton('btn-clear-files');
-    	} else {
-    		this.disableButton('btn-rename');
-    		this.disableButton('btn-clear-files');
-    	}
 
     	// Retrieve Values from HTML Input Fields into Action Objects
     	for (var action of this._actions) {
@@ -193,6 +189,7 @@ var FileRenamer = {
             }
         } 
 
+        // Display Validation Information
         var toast = document.getElementById('validation-toast');
         if (errorsExist == true) {
             toast.classList.remove('toast-success');
@@ -241,6 +238,12 @@ var FileRenamer = {
             newHTML += filename_new + '</mono></td></tr>';
     	}
     	container.innerHTML = newHTML;
+
+        // Re-Enable Buttons if needed
+        if (this._files.length > 0) {
+            this.enableButton('btn-rename');
+            this.enableButton('btn-clear-files');
+        }       
     },
     calculateNewNameForFile: function(file) {
     	var filename_new = file.name
