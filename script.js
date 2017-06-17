@@ -6,6 +6,8 @@ var FileRenamer = {
 	_ignoreExtensions: true,
     _filterByError: false,
     _cancelRenaming: false,
+    _targetCount: 0,
+    _currentCount: 0,
 
     onPageLoad: function() {
         // this.addFileInputListener();
@@ -87,39 +89,50 @@ var FileRenamer = {
     onSelectFiles: function() {
     	document.getElementById('upload-file-input').click();
     },
+    updateRenamingProgress: function() {
+        var progress = document.getElementById('renaming-progress');
+        if (this._targetCount > 0 && this._currentCount > 0) {
+            progress.value = String(Number(this._currentCount / this._targetCount) * 100);
+        } else {
+            progress.value = 0;
+        }
+
+        var overlay = document.getElementById('renaming-overlay');
+        if (this._currentCount < this._targetCount) {
+            overlay.classList.add('active');
+        } else {
+            overlay.classList.remove('active');
+        }
+    },
     onRenameFiles: function() {
         this._cancelRenaming = false;
-        var progress = document.getElementById('renaming-progress');
-        progress.value = 1;
-        var overlay = document.getElementById('renaming-overlay');
-        overlay.classList.add('active');
+        this._targetCount = this._files.length;
+        this._currentCount = 0;
+        this.updateRenamingProgress();
 
-        var currentCount = 0;
-        var targetCount = this._files.length;
     	for (var file of this._files) {
-            currentCount = currentCount + 1;
     		var fileReader = new FileReader();
     		fileReader.onload = function(e) {
     			//console.log(e);
     			//console.log(e.target);
+                if (FileRenamer._cancelRenaming == true) {
+                    FileRenamer._currentCount = FileRenamer._targetCount = 0;
+                    FileRenamer.updateRenamingProgress();
+                    return;
+                }
+
     			var arrayBuffer = e.target.result; //this.result
     			FileRenamer._saveFile(e.target.zFileName, arrayBuffer, e.target.zMimeType);
+
+                FileRenamer._currentCount++;
+                FileRenamer.updateRenamingProgress();
     		};
     		fileReader.zFileName = file.zNewFileName;
     		fileReader.zMimeType = file.type;
     		fileReader.readAsArrayBuffer(file);
-            
-            if (this._cancelRenaming == true) {
-                this._cancelRenaming = false;
-                break;
-            }
-
-
-            progress.value = Number(currentCount / targetCount);
     	}
 
-        overlay.classList.remove('active');
-    	this.onAnyInput(); 	
+    	//this.onAnyInput(); 	
     },
     onClearFiles: function() {
     	this._files = [];
@@ -410,7 +423,8 @@ var FileRenamer = {
     },
     onCancelRenaming: function() {
         this._cancelRenaming = true;
-        document.getElementById('renaming-overlay').classList.remove('active');
+        this._currentCount = this._targetCount = 0;
+        this.updateRenamingProgress();
     },
 }
 
