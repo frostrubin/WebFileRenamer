@@ -7,7 +7,8 @@ You can reach it at [https://frostrubin.github.io/WebFileRenamer](https://frostr
 
 All Source Files can be found in the `gh-pages` branch
 
-This tool would not be possible without these great JS Libraries:
+This tool would not be possible without awesome libraries:
+  -  [Spectre.css](https://picturepan2.github.io/spectre/index.html)
   -  [Moment.js](https://momentjs.com)
   -  [exif-js](https://github.com/exif-js/exif-js)
   -  [Sortable](https://github.com/RubaXa/Sortable)
