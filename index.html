@@ -94,7 +94,7 @@
 						    </label>
 						<!-- </div>						 -->
 						<div id="validation-toast" class="text-center toast rel" onclick="FileRenamer.onValidationFilterToggle();">
-						</div>
+						</div>					
 						<div class="float-right">
 							<button id="btn-rename" class="btn" onclick="FileRenamer.onRenameFiles();" disabled>Rename Files</button>
 						</div>
@@ -130,7 +130,7 @@
 	  <div class="modal-container">
 	    <div class="modal-header">
 	      <button class="btn btn-clear float-right" onclick="FileRenamer.onCancelRenaming();"></button>
-	      <div class="modal-title">Renaming ...</div>
+	      <div id="renaming-overlay-title" class="modal-title">Renaming ...</div>
 	    </div>
 	    <div class="modal-body">
 	      <div class="content">

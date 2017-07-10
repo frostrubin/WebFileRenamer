@@ -1,6 +1,8 @@
 var FileRenamer = {
 	_actions: [],
 	_files: [],
+	_fileSelectedCount: 0,
+	_fileAddedCount: 0,
     _keepFileSelectOrder: false,
     _filesOriginalOrder: [],
 	_ignoreExtensions: true,
@@ -19,7 +21,9 @@ var FileRenamer = {
     },
     onFileSelected: function() {
         var elem = document.getElementById('upload-file-input'); 
-    
+    	
+    	this._fileSelectedCount = this._fileSelectedCount + elem.files.length;	
+
         for (var file of elem.files) {
             FileRenamer._addFile(file);
         }
@@ -27,6 +31,7 @@ var FileRenamer = {
     _addFile: function(file) {
         for (i = 0; i < this._files.length; i++) {
             if (file.name == this._files[i].name) {
+            	this._fileAddedCount++;
                 return;
             }
         }
@@ -39,12 +44,14 @@ var FileRenamer = {
                 FileRenamer._files.push(this);
                 FileRenamer._filesOriginalOrder.push(this);
                 FileRenamer._sortFiles();
+                FileRenamer._fileAddedCount++;
                 FileRenamer.onAnyInput();   
             });
         } else {
             FileRenamer._files.push(file);
             FileRenamer._filesOriginalOrder.push(file);
             FileRenamer._sortFiles();
+            FileRenamer._fileAddedCount++;
             FileRenamer.onAnyInput();            
         }
     },
@@ -97,8 +104,13 @@ var FileRenamer = {
             progress.value = 0;
         }
 
+        // Update the overlays title
+        var title = document.getElementById('renaming-overlay-title');
+        title.innerText = 'Renaming File ' + this._currentCount + ' of ' + this._targetCount;
+
+		// Only show the overlay if there is more than 1 file to be renamed...
         var overlay = document.getElementById('renaming-overlay');
-        if (this._currentCount < this._targetCount) {
+        if (this._targetCount > 1 && this._currentCount < this._targetCount) {
             overlay.classList.add('active');
         } else {
             overlay.classList.remove('active');
@@ -136,6 +148,8 @@ var FileRenamer = {
     },
     onClearFiles: function() {
     	this._files = [];
+    	this._fileSelectedCount = 0;
+    	this._fileAddedCount = 0;
 
     	this.onAnyInput();
     },
@@ -181,43 +195,52 @@ var FileRenamer = {
         this.validateNewFileNames();
 
         // Did Validation find anything?
-        var errorsExist = false;
+        var errorsFound = false;
         for (var file of this._files) {
             if (file.zNewFileNameIsValid == false) {
-                errorsExist = true;
-                break;
+                errorsFound = true;
+                break; 
             }
         } 
 
         // Display Validation Information
         var toast = document.getElementById('validation-toast');
-        if (errorsExist == true) {
-            toast.classList.remove('toast-success');
-            toast.classList.add('toast-error');
-            toast.innerText = 'Validation failed ';
-            this.disableButton('btn-rename');
+
+		// If we are still adding files: display file count
+		if (this._fileSelectedCount > 0 && this._fileAddedCount != this._fileSelectedCount) {
+			toast.classList.add('toast-success');
+            toast.classList.remove('toast-error');
+            toast.innerText = 'Added File ' + this._fileAddedCount + ' of ' + this._fileSelectedCount;
             toast.style.display = 'initial';
-            newHTML = 'Validation failed<i class="material-icons">';
-            if (this._filterByError == true) {
-                newHTML += 'turned_in</i>';
-            } else {
-                newHTML += 'turned_in_not</i>';
-            }
-            toast.innerHTML = newHTML;
-        } else {
-            this._filterByError = false;
-            if (this._files.length > 0) {
-                toast.classList.add('toast-success');
-                toast.classList.remove('toast-error');
-                toast.innerText = 'Validation OK';
-                this.enableButton('btn-rename');
-                toast.style.display = 'initial';
-            } else {
-                toast.classList.remove('toast-success');
-                toast.classList.remove('toast-error');
-                toast.style.display = 'none';
-            }
-        }
+		} else {
+			if (errorsFound == true) {
+				toast.classList.remove('toast-success');
+				toast.classList.add('toast-error');
+				toast.innerText = 'Validation failed ';
+				this.disableButton('btn-rename');
+				toast.style.display = 'initial';
+				newHTML = 'Validation failed<i class="material-icons">';
+				if (this._filterByError == true) {
+					newHTML += 'turned_in</i>';
+				} else {
+					newHTML += 'turned_in_not</i>';
+				}
+				toast.innerHTML = newHTML;
+			} else {
+				this._filterByError = false;
+				if (this._files.length > 0) {
+					toast.classList.add('toast-success');
+					toast.classList.remove('toast-error');
+					toast.innerText = 'Validation OK ';
+					this.enableButton('btn-rename');
+					toast.style.display = 'initial';
+				} else {
+					toast.classList.remove('toast-success');
+					toast.classList.remove('toast-error');
+					toast.style.display = 'none';
+				}
+			}
+		}
 
         // List new Filenames
         newHTML = '';
