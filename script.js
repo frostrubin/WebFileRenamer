@@ -195,11 +195,10 @@ var FileRenamer = {
         this.validateNewFileNames();
 
         // Did Validation find anything?
-        var errorsFound = false;
+        var errorCount = 0;
         for (var file of this._files) {
             if (file.zNewFileNameIsValid == false) {
-                errorsFound = true;
-                break; 
+                errorCount++;
             }
         } 
 
@@ -213,13 +212,14 @@ var FileRenamer = {
             toast.innerText = 'Added File ' + this._fileAddedCount + ' of ' + this._fileSelectedCount;
             toast.style.display = 'initial';
 		} else {
-			if (errorsFound == true) {
+			if (errorCount > 0) {
 				toast.classList.remove('toast-success');
 				toast.classList.add('toast-error');
-				toast.innerText = 'Validation failed ';
+				toast.innerText = 'Validation failed';
+				toast.innerText += ' (' + errorCount + '/' + this._files.length + ')';
 				this.disableButton('btn-rename');
 				toast.style.display = 'initial';
-				newHTML = 'Validation failed<i class="material-icons">';
+				newHTML = toast.innerText + '<i class="material-icons">';
 				if (this._filterByError == true) {
 					newHTML += 'turned_in</i>';
 				} else {
@@ -231,7 +231,8 @@ var FileRenamer = {
 				if (this._files.length > 0) {
 					toast.classList.add('toast-success');
 					toast.classList.remove('toast-error');
-					toast.innerText = 'Validation OK ';
+					toast.innerText = 'Validation OK';
+					toast.innerText += ' (' + this._files.length + ')';
 					this.enableButton('btn-rename');
 					toast.style.display = 'initial';
 				} else {
