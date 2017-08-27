@@ -1167,7 +1167,8 @@ class renamingActionRemoveSpaces extends renamingActionBase{
 class renamingActionDeleteLeadingString extends renamingActionBase {
     constructor() {
         super();
-        this._shiftLeftInputId = 'inp-' + this._UUID;
+        this._shiftLeftInputId       = 'inp-' + this._UUID;
+        this._shiftLeftInputSliderId = 'inp-slider-' + this._UUID;
         this._shiftLeftNumber = 0;
 
         this.buildHTML();
@@ -1181,7 +1182,8 @@ class renamingActionDeleteLeadingString extends renamingActionBase {
         newHTML += '<input class="form-input auto-width" type="number" name="' + this._shiftLeftInputId  + '"';
         newHTML += ' id="' + this._shiftLeftInputId + '" oninput="FileRenamer.onAnyInput();" placeholder="0" value="0" min="0" />';
         newHTML += '</td><td>'
-        newHTML += '<input class="slider" type="range" min="0" max="30" value="0" oninput="';
+        newHTML += '<input class="slider" id="' + this._shiftLeftInputSliderId + '"';
+        newHTML += ' type="range" min="0" max="30" value="0" oninput="';
         newHTML += "FileRenamer.onRangeForInput('" + this._shiftLeftInputId + "');" + '"/>';
         newHTML += '</td></tr></table>';
         return newHTML;
@@ -1191,6 +1193,7 @@ class renamingActionDeleteLeadingString extends renamingActionBase {
     }
     setHTMLValues() {
     	document.getElementById(this._shiftLeftInputId).value = this._shiftLeftNumber;
+    	document.getElementById(this._shiftLeftInputSliderId).value = this._shiftLeftNumber;
     }
     resetInternalState() {
         // Nothing to reset
@@ -1203,7 +1206,8 @@ class renamingActionDeleteLeadingString extends renamingActionBase {
 class renamingActionDeleteTrailingString extends renamingActionBase {
     constructor() {
         super();
-        this._shiftRightInputId = 'inp-' + this._UUID;
+        this._shiftRightInputId       = 'inp-' + this._UUID;
+        this._shiftRightInputSliderId = 'inp-slider-' + this._UUID;
         this._shiftRightNumber = 0;
 
         this.buildHTML();
@@ -1217,7 +1221,8 @@ class renamingActionDeleteTrailingString extends renamingActionBase {
         newHTML += '<input class="form-input auto-width" type="number" name="' + this._shiftRightInputId  + '"';
         newHTML += ' id="' + this._shiftRightInputId + '" oninput="FileRenamer.onAnyInput();" placeholder="0" value="0" min="0" />';
         newHTML += '</td><td>'
-        newHTML += '<input class="slider" type="range" min="0" max="30" value="0" oninput="';
+        newHTML += '<input class="slider" id="' + this._shiftRightInputSliderId + '"';
+        newHTML += ' type="range" min="0" max="30" value="0" oninput="';
         newHTML += "FileRenamer.onRangeForInput('" + this._shiftRightInputId + "');" + '"/>';
         newHTML += '</td></tr></table>';
         return newHTML;
@@ -1227,6 +1232,7 @@ class renamingActionDeleteTrailingString extends renamingActionBase {
     }
     setHTMLValues() {
 		document.getElementById(this._shiftRightInputId).value = this._shiftRightNumber;
+		document.getElementById(this._shiftRightInputSliderId).value = this._shiftRightNumber;
     }
     resetInternalState() {
         // Nothing to reset
