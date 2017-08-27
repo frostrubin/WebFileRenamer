@@ -11,14 +11,14 @@
 
 	<link rel="stylesheet" href="spectre.min.css">
 	<link rel="stylesheet" href="spectre-exp.min.css">
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link rel="stylesheet" href="spectre-icons.min.css">
     <link rel="stylesheet" href="style.css">
 
     <script src="moment.min.js"></script>
     <!-- https://momentjs.com/ -->
     <script src="exif.js"></script> 
     <!-- https://github.com/exif-js/exif-js -->
-    <script src="Sortable.min.js"></script>
+    <script src="sortable.min.js"></script>
     <!-- https://github.com/RubaXa/Sortable -->
     <script src="script.js"></script>
 </head>
@@ -28,14 +28,24 @@
 			<td>
 				<div id="actions-heading">
 					<form>
-						<div class="float-left">
+						<header class="navbar">
+						  <section class="navbar-section">
 							<label class="form-switch">
 						    	<input type="checkbox" onchange="FileRenamer.onToggleIgnoreExtensions();" checked id="chk-extensions"/>
 						      	<i class="form-icon"></i>
-						      	Ignore Extensions
+						      	Ignore&nbsp;Extensions
 						    </label>
-						</div>
-						<div class="float-right">
+						  </section>
+						  <section class="navbar-section">
+						  	<button id="download-actions" class="btn btn-link btn-action btn-lg disabled" onclick="FileRenamer.onDownloadActions();">
+                				<i class="icon icon-download"></i>
+              				</button>
+              				<button class="btn btn-link btn-action btn-lg" onclick="FileRenamer.onUploadActions();">
+                				<i class="icon icon-upload"></i>
+              				</button>
+              				<input id='upload-actions-input' type='file' class="d-none" onChange="FileRenamer.onUploadActionsFile();">
+						  </section>
+						  <section class="navbar-section">
 							<div id="add-action-dropdown" class="dropdown float-right">
 				                <a class="btn dropdown-toggle" tabindex="0">Add Action<i class="icon icon-caret"></i></a>
 				                <ul class="menu">
@@ -58,23 +68,21 @@
 				                    <a href="#" onclick="FileRenamer.onAddAction('stringChangeCase');">Change Case</a>
 				                  </li>
 				                  <li class="menu-item">
+				                    <a href="#" onclick="FileRenamer.onAddAction('lowercaseExtension');">Extension to Lowercase</a>
+				                  </li>  				                  
+				                  <li class="menu-item">
 				                    <a href="#" onclick="FileRenamer.onAddAction('stringDeleteLeading');">Remove Leading Characters</a>
 				                  </li>		
 				                  <li class="menu-item">
 				                    <a href="#" onclick="FileRenamer.onAddAction('stringDeleteTrailing');">Remove Trailing Characters</a>
 				                  </li>						                                    			                                
 				                  <li class="menu-item">
-				                    <a href="#" onclick="FileRenamer.onAddAction('removeLeadingSpaces');">Remove Leading Spaces</a>
-				                  </li>		
-				                  <li class="menu-item">
-				                    <a href="#" onclick="FileRenamer.onAddAction('removeTrailingSpaces');">Remove Trailing Spaces</a>
-				                  </li>
-				                  <li class="menu-item">
-				                    <a href="#" onclick="FileRenamer.onAddAction('removeDoubleSpaces');">Remove Double Spaces</a>
-				                  </li>						                 				                  		                  
+				                    <a href="#" onclick="FileRenamer.onAddAction('removeSpaces');">Remove Spaces</a>
+				                  </li>	         				                  		                  
 				                </ul>
 		              		</div>
-		              	</div>
+						  </section>
+						</header>					
               		</form>
 				</div>
 			</td>

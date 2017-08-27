@@ -74,8 +74,9 @@ mono.is-error {
   height: 90vh;
 }
 
-#main-container > tbody > tr:nth-child(1) > td:nth-child(1) {
-  width: 32vw;
+#main-container > tbody > tr > td:nth-child(1) {
+  width: 31vw;
+  max-width: 31vw;
 }
 
 #upload-file-input {

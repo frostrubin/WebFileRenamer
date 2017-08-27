@@ -4,6 +4,7 @@ var FileRenamer = {
 	_fileSelectedCount: 0,
 	_fileAddedCount: 0,
     _keepFileSelectOrder: false,
+    _currentlyImportingActions: false,
     _filesOriginalOrder: [],
 	_ignoreExtensions: true,
     _filterByError: false,
@@ -160,6 +161,14 @@ var FileRenamer = {
 
     	var container = document.getElementById('preview-table-body');
 
+    	// If we have actions, allow downloads
+    	var downloadActionsButton = document.getElementById('download-actions');
+    	if (this._actions.length > 0) {
+    		downloadActionsButton.classList.remove('disabled');
+    	} else {
+			downloadActionsButton.classList.add('disabled');
+    	}
+
     	// Retrieve Values from HTML Input Fields into Action Objects
     	for (var action of this._actions) {
     		action.getHTMLValues();
@@ -219,11 +228,11 @@ var FileRenamer = {
 				toast.innerText += ' (' + errorCount + '/' + this._files.length + ')';
 				this.disableButton('btn-rename');
 				toast.style.display = 'initial';
-				newHTML = toast.innerText + '<i class="material-icons">';
+				newHTML = toast.innerText;
 				if (this._filterByError == true) {
-					newHTML += 'turned_in</i>';
+					newHTML += ' ⚑';
 				} else {
-					newHTML += 'turned_in_not</i>';
+					newHTML += ' ⚐';
 				}
 				toast.innerHTML = newHTML;
 			} else {
@@ -279,10 +288,10 @@ var FileRenamer = {
     	}
 
     	for (var action of this._actions) {
-    		filename_new = action.renameFile(file, filename_new);
+    		filename_new = action.renameFile(file, filename_new, extension);
     	}
 
-    	if (extension != '') {
+    	if (extension != '' && action.constructor.name != 'renamingActionExtensionToLowerCase') {
     		filename_new = filename_new + '.' + extension;
     	}
 
@@ -338,45 +347,58 @@ var FileRenamer = {
 	        window.URL.revokeObjectURL(url);
 	    }
     },
-    onAddAction: function(actionName) {
+    getActionInstance: function(actionName) {
+    	// This method is used in Calls from UI
+    	// as well as JSON upload
     	var newAction = new Object;
 		switch (actionName) {
+			case 'renamingActionAddString':
 		  	case 'stringAdd':
 		  		newAction = new renamingActionAddString();
 		    	break;
+		    case 'renamingActionReplaceString':
 		  	case 'stringReplace':
 		  		newAction = new renamingActionReplaceString();
                 break;
+            case 'renamingActionReplaceRegexString':
             case 'stringRegexReplace':
                 newAction = new renamingActionReplaceRegexString();
-                break;            
+                break;    
+            case 'renamingActionDeleteLeadingString':        
             case 'stringDeleteLeading':
                 newAction = new renamingActionDeleteLeadingString();
 		  		break;
+		  	case 'renamingActionDeleteTrailingString':
             case 'stringDeleteTrailing':
                 newAction = new renamingActionDeleteTrailingString();
-                break;       
+                break;      
+            case 'renamingActionChangeCase': 
             case 'stringChangeCase':
                 newAction = new renamingActionChangeCase();
                 break;     
+            case 'renamingActionAddDate':
             case 'addDate':
                 newAction = new renamingActionAddDate();
                 break;
+            case 'renamingActionAddSequence':
             case 'addSequence':
                 newAction = new renamingActionAddSequence();
                 break;
-            case 'removeLeadingSpaces':
-                newAction = new renamingActionTrimLeft();
-                break;
-            case 'removeTrailingSpaces':
-                newAction = new renamingActionTrimRight();
-                break;
-            case 'removeDoubleSpaces':
-                newAction = new renamingActionRemoveDoubleSpaces();
-                break;                                                
+            case 'renamingActionRemoveSpaces':
+            case 'removeSpaces':
+            	newAction = new renamingActionRemoveSpaces();
+            	break; 
+            case 'renamingActionExtensionToLowerCase':
+            case 'lowercaseExtension':
+            	newAction = new renamingActionExtensionToLowerCase();
+            	break;                                              
 		  	default:
 		  		throw('Unknown Action!');
-		}
+		}    	
+		return newAction;
+    },
+    onAddAction: function(actionName) {
+		var newAction = this.getActionInstance(actionName);
 		this._actions.push(newAction);
 
 		this.onAnyInput();
@@ -426,6 +448,74 @@ var FileRenamer = {
         this.onAnyInput();
         this.enableButton('btn-rename')
     },
+    onDownloadActions: function() {
+    	if (this._actions.length == 0) {
+    		return;
+    	}
+    	var down = [];
+    	for (i = 0; i < this._actions.length; i++) {
+    		var action = this._actions[i];
+			var downAction = {};
+			downAction['className'] = action.constructor.name;
+			downAction['instance'] = action;
+			down.push(downAction);
+    	}
+    	var actionJSON = JSON.stringify(down);
+    	var today = new Date();
+		var filename = 'WebFileRenamerActions ' + today.toUTCString() + '.json';
+    	this._saveFile(filename, actionJSON, 'application/json');
+    },
+    onUploadActions: function() {
+		document.getElementById('upload-actions-input').click();
+    },
+    onUploadActionsFile: function() {
+    	var elem = document.getElementById('upload-actions-input'); 
+    	if (elem.files.length == 0) {
+    		return;
+    	}
+    	var file = elem.files[0];
+		var fileReader = new FileReader();
+		fileReader.onload = function(e) {
+			var text = e.target.result;
+			var down = JSON.parse(text);
+			if (down.length == 0) {
+				return;
+			}
+			
+			FileRenamer.disableButton('btn-rename');
+			FileRenamer._actions = [];
+			var list = document.getElementById('action-list');
+			while (list.firstChild) {
+    			list.removeChild(list.firstChild);
+			}
+			FileRenamer._currentlyImportingActions = true;
+			for (i = 0; i < down.length; i++) {
+				var downAction = down[i];
+				var className = downAction['className'];
+				var instance  = downAction['instance'];
+				
+				UUIDGenerator._uuids.push(instance['_UUID']); // Should be unnecessary ...
+
+				var newAction = FileRenamer.getActionInstance(className);
+				for (var property in instance) {
+					if (newAction.hasOwnProperty(property)) {
+						newAction[property] = instance[property];
+					}
+				}
+				FileRenamer._actions.push(newAction);
+			}
+
+			FileRenamer._currentlyImportingActions = false;
+			for (i = 0; i < FileRenamer._actions.length; i++) {
+				FileRenamer._actions[i].buildHTML();
+				FileRenamer._actions[i].setHTMLValues();
+			}
+			document.getElementById('upload-actions-input').value = '';
+			FileRenamer.enableButton('btn-rename');
+			FileRenamer.onAnyInput();
+		};
+		fileReader.readAsText(file);
+    },
     onRangeForInput: function(id) {
         var target = document.getElementById(id);
         target.value = window.event.target.value;
@@ -468,7 +558,8 @@ class renamingActionBase {
   	}
   	buildHTML() {
   		var list = document.getElementById('action-list');
-  		if (document.getElementById(this._liID) === null) {
+  		if (document.getElementById(this._liID) === null &&
+  		    FileRenamer._currentlyImportingActions == false) {
   			var newCont = document.createElement('li');
   			newCont.id = this._liID;
   			
@@ -495,6 +586,9 @@ class renamingActionBase {
   		throw('This method has to be redefined!');
   	}
   	getHTMLValues() {
+  		throw('This method has to be redefined!');
+  	}
+  	setHTMLValues() {
   		throw('This method has to be redefined!');
   	}
   	resetInternalState() {
@@ -546,6 +640,18 @@ class renamingActionAddString extends renamingActionBase {
                 this._putWhere = 'PREPEND';
                 break;
         }        
+	}
+	setHTMLValues() {
+		document.getElementById(this._addStringInputId).value = this._addString;
+        var e = document.getElementById(this._putWhereInputId);
+        switch (this._putWhere) {
+            case 'APPEND':
+            	e.value = '2';
+            	break;
+            default:
+				e.value = '1'
+				break;
+        }	
 	}
 	resetInternalState() {
 		// Nothing to reset
@@ -620,6 +726,23 @@ class renamingActionReplaceString extends renamingActionBase {
                 this._replaceType = 'EVERY';
                 break;
         }
+	}
+	setHTMLValues() {
+		document.getElementById(this._replaceStringInputId).value   = this._replaceString;
+		document.getElementById(this._replaceWithInputId).value     = this._replaceWith;
+		document.getElementById(this._caseSensitiveInputId).checked = this._caseSensitive;
+       	var e = document.getElementById(this._replaceTypeInputId);
+        switch (this._replaceType) {	
+			case 'FIRST':
+				e.value = '2';
+				break;
+			case 'LAST':
+				e.value = '3';
+				break;		
+			default:
+				e.value = '1';
+				break;	
+        }	
 	}
 	resetInternalState() {
 		// Nothing to reset
@@ -696,6 +819,11 @@ class renamingActionReplaceRegexString extends renamingActionBase {
         this._replaceWith   = document.getElementById(this._replaceWithInputId).value;
         this._optionsString = document.getElementById(this._optionsInputId).value;
     }
+    setHTMLValues() {
+        document.getElementById(this._replaceStringInputId).value = this._replaceString;
+        document.getElementById(this._replaceWithInputId).value   = this._replaceWith;
+        document.getElementById(this._optionsInputId).value       = this._optionsString;	
+    }
     resetInternalState() {
         // Nothing to reset
     }
@@ -761,6 +889,23 @@ class renamingActionChangeCase extends renamingActionBase {
                 this._changeCaseOption = 'UPPER';
                 break;
         }
+    }
+    setHTMLValues() {
+		var e = document.getElementById(this._changeCaseInputId);
+		switch (this._changeCaseOption) {
+            case 'LOWER':
+            	e.value = '2';
+            	break;
+            case 'TITLE':
+            	e.value = '3';
+            	break;
+            case 'INVERT':
+            	e.value = '4';
+            	break;
+            default:
+            	e.value = '1';
+            	break;
+		}
     }
     resetInternalState() {
         // Nothing to reset
@@ -871,6 +1016,27 @@ class renamingActionAddDate extends renamingActionBase {
 
         this._dateFormatter = document.getElementById(this._dateFormatterInputId).value;
     }
+    setHTMLValues() {
+		var e = document.getElementById(this._typeOfDateInputId);
+		switch (this._typeOfDate) {
+            case 'EXIFCREATION':
+				e.value = '2';
+				break;
+			default:
+				e.value = '1';
+				break
+		}
+		var el = document.getElementById(this._putWhereInputId);
+        switch (this._putWhere) {
+            case 'APPEND':		
+            	el.value = '2';
+            	break;
+            default:
+            	el.value = '1';
+            	break;
+        }
+        document.getElementById(this._dateFormatterInputId).value = this._dateFormatter;
+    }
     resetInternalState() {
         // Nothing to reset
     }
@@ -907,42 +1073,96 @@ class renamingActionNoInteractionBase extends renamingActionBase {
 
         this.buildHTML();
     }
+    getHTMLBody() { return ''; }
+    getHTMLValues() {}
+    setHTMLValues() {}
+    resetInternalState() {}
+}
+
+class renamingActionExtensionToLowerCase extends renamingActionNoInteractionBase{
+	constructor() {
+		super();
+	}
+	getTitle() {
+		return 'Extension to Lowercase';
+	}
+	renameFile(file, filename_new, extension) {
+		if (FileRenamer._ignoreExtensions) {
+			return filename_new + '.' + extension.toLowerCase();
+		}
+		
+		var split = filename_new.split('.')
+		var extension = split.pop().toLowerCase();
+		split.push(extension);
+		return split.join('.');
+	}
+}
+
+class renamingActionRemoveSpaces extends renamingActionBase{
+    constructor() {
+        super();
+
+		this._chkLeading  = 'chk-leading-'  + this._UUID;
+		this._chkTrailing = 'chk-trailing-' + this._UUID;
+		this._chkDouble   = 'chk-double-' 	+ this._UUID;
+		this._removeLeading  = true;
+		this._removeTrailing = true;
+		this._removeDouble   = true,
+
+        this.buildHTML();
+    }
+    getTitle() {
+        return 'Remove Spaces';
+    }
     getHTMLBody() {
-        return '';
+        var newHTML = '';
+        newHTML += '<header class="navbar"><section class="navbar-section">';
+        newHTML += '<label class="form-switch"><input type="checkbox"';
+        newHTML += ' id="' + this._chkLeading + '" checked onchange="FileRenamer.onAnyInput();"/>';
+		newHTML += '<i class="form-icon"></i>Leading</label>';
+
+        newHTML += '<label class="form-switch"><input type="checkbox"';
+        newHTML += ' id="' + this._chkTrailing + '" checked onchange="FileRenamer.onAnyInput();"/>';
+		newHTML += '<i class="form-icon"></i>Trailing</label>';	
+
+        newHTML += '<label class="form-switch"><input type="checkbox"';
+        newHTML += ' id="' + this._chkDouble + '" checked onchange="FileRenamer.onAnyInput();"/>';
+		newHTML += '<i class="form-icon"></i>Double</label>';
+
+		newHTML += '</section></header>';			
+
+        return newHTML;
     }
     getHTMLValues() {
+        this._removeLeading  = document.getElementById(this._chkLeading).checked;
+        this._removeTrailing = document.getElementById(this._chkTrailing).checked;
+        this._removeDouble   = document.getElementById(this._chkDouble).checked;
+    }
+    setHTMLValues() {
+        document.getElementById(this._chkLeading).checked  = this._removeLeading;
+        document.getElementById(this._chkTrailing).checked = this._removeTrailing;
+        document.getElementById(this._chkDouble).checked   = this._removeDouble;	
     }
     resetInternalState() {
-    }
-}
-
-class renamingActionTrimLeft extends renamingActionNoInteractionBase {
-    getTitle() {
-        return 'Remove Leading Spaces';
+        // Nothing to reset
     }
     renameFile(file, filename_new) {
-        return filename_new.trimLeft();
-    }
-}
+    	var filename_out = filename_new;
+    	if (this._removeLeading == true) {
+    		filename_out = filename_out.trimLeft();
+    	}
 
-class renamingActionTrimRight extends renamingActionNoInteractionBase {
-    getTitle() {
-        return 'Remove Trailing Spaces';
-    }
-    renameFile(file, filename_new) {
-        return filename_new.trimRight();
-    }
-}
+    	if (this._removeTrailing == true) {
+    		filename_out = filename_out.trimRight();
+    	}
 
-class renamingActionRemoveDoubleSpaces extends renamingActionNoInteractionBase {
-    getTitle() {
-        return 'Remove Double Spaces';
-    }
-    renameFile(file, filename_new) {
-        return filename_new.replace(/\s\s+/g, ' ');
-    }    
-}
+    	if (this._removeDouble == true) {
+			filename_out = filename_out.replace(/\s\s+/g, ' ');
+    	}
 
+    	return filename_out;
+    }	
+}
 
 class renamingActionDeleteLeadingString extends renamingActionBase {
     constructor() {
@@ -968,6 +1188,9 @@ class renamingActionDeleteLeadingString extends renamingActionBase {
     }
     getHTMLValues() {
         this._shiftLeftNumber = document.getElementById(this._shiftLeftInputId).value;
+    }
+    setHTMLValues() {
+    	document.getElementById(this._shiftLeftInputId).value = this._shiftLeftNumber;
     }
     resetInternalState() {
         // Nothing to reset
@@ -1001,6 +1224,9 @@ class renamingActionDeleteTrailingString extends renamingActionBase {
     }
     getHTMLValues() {
         this._shiftRightNumber = document.getElementById(this._shiftRightInputId).value;
+    }
+    setHTMLValues() {
+		document.getElementById(this._shiftRightInputId).value = this._shiftRightNumber;
     }
     resetInternalState() {
         // Nothing to reset
@@ -1068,6 +1294,20 @@ class renamingActionAddSequence extends renamingActionBase {
                 this._putWhere = 'PREPEND';
                 break;
         }
+    }
+    setHTMLValues() {
+        document.getElementById(this._startNumberInputId).value = this._startNumber;
+        document.getElementById(this._stepValueInputId).value   = this._stepValue;
+        document.getElementById(this._paddingInputId).value     = this._padding;	
+        var e = document.getElementById(this._putWhereInputId);
+        switch (this._putWhere) {
+            case 'APPEND':
+                e.value = '2';
+                break;          
+            default:
+                e.value = '1';
+                break;
+        }        	
     }
     resetInternalState() {
         this._currentNumber = this._startNumber;
