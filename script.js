@@ -74,6 +74,12 @@ var FileRenamer = {
             for (var i = 0; i < min; i++) {
                 var x = parseFloat(aa[i]) || aa[i].toLowerCase(),
                     y = parseFloat(bb[i]) || bb[i].toLowerCase();
+                if (x < 0) {
+                	x = x * -1;
+                }
+                if (y < 0) {
+                	y = y * -1;
+                }		    
                 if (x < y) return -1;
                 else if (x > y) return 1;
             }
