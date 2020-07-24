@@ -142,6 +142,8 @@ var FileRenamer = {
 
     			var arrayBuffer = e.target.result; //this.result
     			FileRenamer._saveFile(e.target.zFileName, arrayBuffer, e.target.zMimeType);
+				
+				await do_pause(800); // Some browsers limit auto-download. So we wait between downloads
 
                 FileRenamer._currentCount++;
                 FileRenamer.updateRenamingProgress();
@@ -1349,7 +1351,6 @@ class renamingActionAddSequence extends renamingActionBase {
     }
 }
 
-
 var UUIDGenerator = {
 	_uuids: [],
 
@@ -1366,4 +1367,12 @@ var UUIDGenerator = {
 	      .toString(16)
 	      .substring(1);
 	},
+}
+
+function do_pause(msec) {
+    return new Promise(
+        (resolve, reject) => {
+            setTimeout(resolve, msec || 1000);
+        }
+    );
 }
