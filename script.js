@@ -290,6 +290,10 @@ var FileRenamer = {
     calculateNewNameForFile: function(file) {
     	var filename_new = file.name
     	var extension = '';
+		
+		if (this._actions.length == 0) {
+			return filename_new;
+		}
 
     	if (this._ignoreExtensions) {
     		extension = filename_new.split('.').pop();
