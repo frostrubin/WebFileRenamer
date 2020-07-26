@@ -150,7 +150,7 @@ var FileRenamer = {
     		fileReader.zMimeType = file.type;
     		fileReader.readAsArrayBuffer(file);
 			// Some browsers limit auto-download. So we wait between downloads
-			await new Promise(r => setTimeout(r, 800));
+			await new Promise(r => setTimeout(r, 3000));
     	}
 
     	//this.onAnyInput(); 	
