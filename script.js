@@ -298,10 +298,10 @@ var FileRenamer = {
 
     	for (var action of this._actions) {
     		filename_new = action.renameFile(file, filename_new, extension);
-    	}
 
-    	if (extension != '' && action.constructor.name != 'renamingActionExtensionToLowerCase') {
-    		filename_new = filename_new + '.' + extension;
+			if (extension != '' && action.constructor.name != 'renamingActionExtensionToLowerCase') {
+    			filename_new = filename_new + '.' + extension;
+    		}
     	}
 
     	// Special Consideration: Trim Trailing Whitespaces. ALWAYS
