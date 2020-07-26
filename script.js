@@ -1,11 +1,3 @@
-const do_pause = async function(msec) {
-    return new Promise(
-        (resolve, reject) => {
-            setTimeout(resolve, msec || 1000);
-        }
-    );
-}
-
 var FileRenamer = {
 	_actions: [],
 	_files: [],
@@ -131,7 +123,7 @@ var FileRenamer = {
             overlay.classList.remove('active');
         }
     },
-    onRenameFiles: function() {
+    onRenameFiles: async function() {
         this._cancelRenaming = false;
         this._targetCount = this._files.length;
         this._currentCount = 0;
@@ -151,7 +143,8 @@ var FileRenamer = {
     			var arrayBuffer = e.target.result; //this.result
     			FileRenamer._saveFile(e.target.zFileName, arrayBuffer, e.target.zMimeType);
 				
-				await do_pause(800); // Some browsers limit auto-download. So we wait between downloads
+				// Some browsers limit auto-download. So we wait between downloads
+				await new Promise(r => setTimeout(r, 800));
 
                 FileRenamer._currentCount++;
                 FileRenamer.updateRenamingProgress();
