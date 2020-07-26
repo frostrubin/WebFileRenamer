@@ -157,6 +157,7 @@ var FileRenamer = {
     },
     onClearFiles: function() {
     	this._files = [];
+		this._filesOriginalOrder = [];
     	this._fileSelectedCount = 0;
     	this._fileAddedCount = 0;
 
