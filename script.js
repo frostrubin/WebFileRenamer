@@ -1,3 +1,11 @@
+const do_pause = async function(msec) {
+    return new Promise(
+        (resolve, reject) => {
+            setTimeout(resolve, msec || 1000);
+        }
+    );
+}
+
 var FileRenamer = {
 	_actions: [],
 	_files: [],
@@ -1367,12 +1375,4 @@ var UUIDGenerator = {
 	      .toString(16)
 	      .substring(1);
 	},
-}
-
-function do_pause(msec) {
-    return new Promise(
-        (resolve, reject) => {
-            setTimeout(resolve, msec || 1000);
-        }
-    );
 }
