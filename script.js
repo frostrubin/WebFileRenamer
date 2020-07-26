@@ -142,9 +142,6 @@ var FileRenamer = {
 
     			var arrayBuffer = e.target.result; //this.result
     			FileRenamer._saveFile(e.target.zFileName, arrayBuffer, e.target.zMimeType);
-				
-				// Some browsers limit auto-download. So we wait between downloads
-				await new Promise(r => setTimeout(r, 800));
 
                 FileRenamer._currentCount++;
                 FileRenamer.updateRenamingProgress();
@@ -152,6 +149,8 @@ var FileRenamer = {
     		fileReader.zFileName = file.zNewFileName;
     		fileReader.zMimeType = file.type;
     		fileReader.readAsArrayBuffer(file);
+			// Some browsers limit auto-download. So we wait between downloads
+			await new Promise(r => setTimeout(r, 800));
     	}
 
     	//this.onAnyInput(); 	
